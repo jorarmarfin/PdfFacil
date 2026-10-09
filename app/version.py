@@ -3,4 +3,5 @@ __version__ = "1.1.0"
 
 APP_NAME = "PDFácil"
 AUTHOR = "Luis Mayta"
+PUBLISHER = "Hefesto2JS"
 AUTHOR_URL = "https://luisitomayta.com/cv/"

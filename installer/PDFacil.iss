@@ -9,7 +9,7 @@
 #define AppName "PDFácil"
 #define AppDirName "PDFacil"
 #define AppExe "PDF_Facil.exe"
-#define AppPublisher "PDF Fácil"
+#define AppPublisher "Hefesto2JS"
 #define SourceDir "..\dist\PDF_Facil"
 
 [Setup]

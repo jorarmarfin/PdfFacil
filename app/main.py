@@ -12,6 +12,9 @@ from app.ui.theme import STYLESHEET
 
 
 def main() -> int:
+    if len(sys.argv) >= 2 and sys.argv[1] == "--selftest":  # solo CI (prueba del paquete MSIX)
+        from app.selftest import main as selftest_main
+        return selftest_main(sys.argv[2:])
     if sys.platform == "win32":  # icono propio en la barra de tareas
         try:
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("PDFFacil.App")

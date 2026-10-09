@@ -1,0 +1,89 @@
+name: build-msix
+
+# Paquete MSIX para Microsoft Store (independiente de build-windows: no toca el instalador Inno ni el ZIP).
+# Requiere variables del repo (Settings > Secrets and variables > Actions > Variables), copiadas de
+# Partner Center > Gestión del producto > Identidad del producto:
+#   MSIX_IDENTITY_NAME            (Package/Identity/Name)
+#   MSIX_PUBLISHER               (Package/Identity/Publisher, "CN=...")
+#   MSIX_PUBLISHER_DISPLAY_NAME  (Package/Properties/PublisherDisplayName)
+# Sin ellas se genera un paquete de PRUEBA que no se debe subir a la Store.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  msix:
+    runs-on: windows-latest
+    env:
+      MSIX_IDENTITY_NAME: ${{ vars.MSIX_IDENTITY_NAME }}
+      MSIX_PUBLISHER: ${{ vars.MSIX_PUBLISHER }}
+      MSIX_PUBLISHER_DISPLAY_NAME: ${{ vars.MSIX_PUBLISHER_DISPLAY_NAME }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.lock
+
+      - name: Verificar versión
+        shell: pwsh
+        run: |
+          $file = (Select-String -Path app/version.py -Pattern '^__version__\s*=\s*"([^"]+)"').Matches[0].Groups[1].Value
+          if ($env:GITHUB_REF -like 'refs/tags/v*' -and $env:GITHUB_REF_NAME.TrimStart('v') -ne $file) {
+            throw "El tag ($env:GITHUB_REF_NAME) no coincide con app/version.py ($file)"
+          }
+
+      - name: Instalar dependencias fijadas
+        run: python -m pip install -r requirements.lock
+
+      - name: Pruebas
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: python -m pytest -q
+
+      - name: Construir onedir
+        shell: pwsh
+        run: |
+          pyinstaller --noconfirm --clean --windowed --onedir --name PDF_Facil --icon assets/icon.ico --add-data "assets;assets" pdf_facil.py
+          if ($LASTEXITCODE -ne 0) { throw "PyInstaller falló" }
+
+      - name: Construir MSIX
+        id: pack
+        shell: pwsh
+        run: |
+          ./tools/build_msix.ps1 -IdentityName $env:MSIX_IDENTITY_NAME -Publisher $env:MSIX_PUBLISHER -PublisherDisplayName $env:MSIX_PUBLISHER_DISPLAY_NAME
+
+      - name: Probar la app dentro del contenedor MSIX
+        shell: pwsh
+        run: ./tools/test_msix.ps1 -Msix "${{ steps.pack.outputs.msix }}"
+
+      - name: Windows App Certification Kit (informativo)
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          # WACK exige instalar el paquete firmado; en CI se deja el aviso y la validación final la hace Partner Center.
+          $k = "${env:ProgramFiles(x86)}\Windows Kits\10\App Certification Kit\appcert.exe"
+          if (Test-Path $k) { "WACK disponible: ejecútalo en tu PC con ``appcert.exe`` (ver docs/MICROSOFT_STORE.md)" } else { "WACK no está en el runner" }
+
+      - name: Resumen
+        shell: pwsh
+        run: |
+          $m = "${{ steps.pack.outputs.msix }}"
+          "MSIX: ``$(Split-Path $m -Leaf)`` · Store listo: **${{ steps.pack.outputs.store_ready }}** · Publisher: ``${{ steps.pack.outputs.publisher }}``" >> $env:GITHUB_STEP_SUMMARY
+          if ("${{ steps.pack.outputs.store_ready }}" -ne "true") {
+            "> Paquete de PRUEBA: faltan variables MSIX_* de Partner Center. No subir a la Store." >> $env:GITHUB_STEP_SUMMARY
+          }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PDFacil-MSIX${{ steps.pack.outputs.store_ready == 'true' && '' || '-TEST-no-subir' }}
+          if-no-files-found: error
+          path: |
+            ${{ steps.pack.outputs.msix }}
+            ${{ steps.pack.outputs.msix }}.sha256
