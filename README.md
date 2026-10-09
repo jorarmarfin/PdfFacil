@@ -1,6 +1,47 @@
+<p align="center"><img src="logo.png" alt="PDFácil" height="90"></p>
+
 # PDF Fácil
 
 Une varios PDF en el orden que tú elijas, sin renombrar archivos. Funciona sin internet y **nunca modifica tus originales**.
+
+## Información del sistema
+
+| | |
+|---|---|
+| Aplicación | PDFácil (`PDF_Facil.exe`), versión en `app/version.py` |
+| Tipo | Aplicación de escritorio, 100 % offline, sin telemetría |
+| Funciones | Unir PDF en el orden elegido · Comprimir PDF (3 niveles) |
+| Plataforma de uso | Windows 10/11 64 bits |
+| Desarrollo | Linux / Windows, Python ≥ 3.12 |
+| Lenguaje y UI | Python + PySide6 6.12.0 (Qt 6) |
+| Dependencias | pypdf 6.19.0 (leer/unir/comprimir), Pillow 12.3.0 (recomprimir imágenes) |
+| Empaquetado | PyInstaller `--onedir` → carpeta `PDF_Facil.exe` + `_internal` |
+| Instalador | Inno Setup 6 (`installer/PDFacil.iss`), por usuario, sin admin |
+| CI/CD | GitHub Actions (`build-windows.yml`, runner `windows-latest`) |
+| Licencia | MIT |
+
+**Requisitos para el usuario:** Windows 10/11 x64, ~250 MB libres. No necesita Python ni internet.
+
+**Datos del usuario:** solo se guardan la última carpeta usada y la geometría de la ventana (`QSettings`, registro de Windows `HKCU\Software\PDFFacil`). Las contraseñas de PDF no se guardan. Los PDF originales nunca se modifican: unir y comprimir generan archivos nuevos.
+
+### Estructura del proyecto
+```
+pdf_facil.py            punto de entrada
+app/
+  main.py               arranque, tema, ícono
+  version.py            versión y datos del autor (cambiar aquí al publicar)
+  resources.py          ruta de recursos (dev y PyInstaller)
+  core/                 lógica PDF sin UI: inspector, validador, unión, compresión
+  models/               PdfItem (archivo en la lista)
+  services/             workers en hilo (unir/comprimir), archivos, ajustes
+  ui/                   ventana principal, diálogo de compresión, tema, tabla
+assets/                 icon.ico/png, logo.png (generados con tools/make_icon.py)
+installer/PDFacil.iss   script de Inno Setup
+build.ps1 / build.bat   compilación local en Windows (ZIP + instalador)
+tests/                  pytest (unión, orden, validación, compresión, UI)
+logo.png, logo-corto.png  logos originales
+```
+La lógica de `core/` no depende de Qt; los workers la ejecutan en segundo plano para no congelar la ventana y permiten cancelar.
 
 ## Uso (usuaria final, Windows 10/11)
 
@@ -39,7 +80,7 @@ En Windows para desarrollo: `run.bat`.
 PyInstaller no compila de Linux a Windows. Usa GitHub Actions: pestaña *Actions → build-windows → Run workflow* (o sube un tag `v1.0.0`). Descarga el artifact `PDF_Facil-Windows-x64` (ZIP + SHA-256). El ícono se regenera con `python tools/make_icon.py`.
 
 ### Instalador
-El workflow también genera `PDFacil-Setup-<versión>.exe` (Inno Setup, `installer/PDFacil.iss`): instala por usuario sin admin en `%LOCALAPPDATA%\Programs\PDFacil`, crea acceso en Inicio (y escritorio opcional), se registra en *Aplicaciones instaladas* y actualiza sobre versiones previas conservando la configuración (vive en el registro de usuario, no se borra). Versión = tag `vX.Y.Z` o `pyproject.toml`. Con tag `v*` se publica en Releases junto al ZIP. El instalador no está firmado: SmartScreen puede avisar (*Más información → Ejecutar de todas formas*).
+El workflow también genera `PDFacil-Setup-<versión>.exe` (Inno Setup, `installer/PDFacil.iss`): instala por usuario sin admin en `%LOCALAPPDATA%\Programs\PDFacil`, crea acceso en Inicio (y escritorio opcional), se registra en *Aplicaciones instaladas* y actualiza sobre versiones previas conservando la configuración (vive en el registro de usuario, no se borra). Versión = tag `vX.Y.Z` o `app/version.py`. Con tag `v*` se publica en Releases junto al ZIP. El instalador no está firmado: SmartScreen puede avisar (*Más información → Ejecutar de todas formas*).
 
 Compilación local en Windows (ZIP + instalador; requiere Inno Setup 6, `winget install JRSoftware.InnoSetup`):
 ```powershell

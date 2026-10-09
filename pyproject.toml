@@ -1,6 +1,6 @@
 [project]
 name = "pdf-facil"
-version = "1.0.0"
+dynamic = ["version"]  # fuente única: app/version.py
 description = "Une PDF en el orden que tú elijas. 100 % offline."
 requires-python = ">=3.12"
 dependencies = ["PySide6==6.12.0", "pypdf==6.19.0", "Pillow==12.3.0"]

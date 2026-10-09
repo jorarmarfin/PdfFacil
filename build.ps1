@@ -17,7 +17,7 @@ function Run($exe, $argList) {
 }
 
 if (-not $Version) {
-    $Version = (Select-String -Path pyproject.toml -Pattern '^version\s*=\s*"([^"]+)"').Matches[0].Groups[1].Value
+    $Version = (Select-String -Path app\version.py -Pattern '^__version__\s*=\s*"([^"]+)"').Matches[0].Groups[1].Value
 }
 Write-Host "== PDFacil $Version ==" -ForegroundColor Cyan
 

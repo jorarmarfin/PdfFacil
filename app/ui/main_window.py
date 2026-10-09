@@ -16,9 +16,11 @@ from app.services.file_service import expand_paths, list_pdfs_in_folder
 from app.services.merge_worker import MergeWorker
 from app.services.settings_service import SettingsService
 from app.resources import resource_path
+from app.ui.about_dialog import AboutDialog
 from app.ui.compress_dialog import CompressDialog
 from app.ui.pdf_list_model import PdfListModel
 from app.ui.widgets.pdf_table_view import PdfTableView, urls_to_paths
+from app.version import __version__
 
 
 class MainWindow(QMainWindow):
@@ -85,7 +87,15 @@ class MainWindow(QMainWindow):
         self.btn_merge.setMinimumWidth(180)
         self.btn_merge.setObjectName("primary")
         self.btn_merge.setDefault(True)
-        bottom.addWidget(self.count_label, 1)
+        self.btn_about = QPushButton("Créditos")
+        self.btn_about.setObjectName("link")
+        self.btn_about.setCursor(Qt.PointingHandCursor)
+        self.version_label = QLabel(f"v{__version__}")
+        self.version_label.setObjectName("muted")
+        bottom.addWidget(self.count_label)
+        bottom.addWidget(self.btn_about)
+        bottom.addWidget(self.version_label)
+        bottom.addStretch(1)
         bottom.addWidget(self.btn_merge)
         lay.addLayout(bottom)
 
@@ -96,6 +106,7 @@ class MainWindow(QMainWindow):
         self.btn_remove.clicked.connect(self.on_remove)
         self.btn_clear.clicked.connect(self.on_clear)
         self.btn_merge.clicked.connect(self.on_merge)
+        self.btn_about.clicked.connect(lambda: AboutDialog(self).exec())
         self.btn_compress.clicked.connect(lambda: self.open_compress())
         self.table.files_dropped.connect(self.add_paths)
         self.table.rows_moved.connect(lambda _: self._refresh())
@@ -119,6 +130,7 @@ class MainWindow(QMainWindow):
         self.setTabOrder(self.btn_remove, self.btn_clear)
         self.setTabOrder(self.btn_clear, self.btn_compress)
         self.setTabOrder(self.btn_compress, self.btn_merge)
+        self.setTabOrder(self.btn_merge, self.btn_about)
 
     def _refresh(self) -> None:
         n, p = self.model.rowCount(), self.model.total_pages()

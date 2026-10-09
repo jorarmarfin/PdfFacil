@@ -4,7 +4,7 @@
 ; actualizar ni desinstalar los toca.
 
 #ifndef AppVersion
-  #define AppVersion "1.0.0"
+  #define AppVersion "1.1.0"
 #endif
 #define AppName "PDFácil"
 #define AppDirName "PDFacil"

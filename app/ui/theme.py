@@ -35,5 +35,11 @@ QHeaderView::section {{
 }}
 QProgressBar {{ border: 1px solid {BORDER}; border-radius: 4px; text-align: center; background: {CARD}; }}
 QProgressBar::chunk {{ background: {TEAL}; }}
+QLabel#muted {{ color: #8FA3BA; font-size: 11px; }}
+QPushButton#link {{
+    background: transparent; border: none; color: {BLUE}; padding: 2px 8px;
+    text-decoration: underline; font-size: 12px;
+}}
+QPushButton#link:hover {{ color: {TEAL_DARK}; background: transparent; }}
 QLabel#count {{ color: {NAVY}; font-weight: bold; }}
 """
