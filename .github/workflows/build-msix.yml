@@ -6,6 +6,7 @@ name: build-msix
 #   MSIX_IDENTITY_NAME            (Package/Identity/Name)
 #   MSIX_PUBLISHER               (Package/Identity/Publisher, "CN=...")
 #   MSIX_PUBLISHER_DISPLAY_NAME  (Package/Properties/PublisherDisplayName)
+#   MSIX_DISPLAY_NAME            (nombre de la app reservado en Partner Center; por defecto "PDFácil")
 # Sin ellas se genera un paquete de PRUEBA que no se debe subir a la Store.
 on:
   workflow_dispatch:
@@ -22,6 +23,7 @@ jobs:
       MSIX_IDENTITY_NAME: ${{ vars.MSIX_IDENTITY_NAME }}
       MSIX_PUBLISHER: ${{ vars.MSIX_PUBLISHER }}
       MSIX_PUBLISHER_DISPLAY_NAME: ${{ vars.MSIX_PUBLISHER_DISPLAY_NAME }}
+      MSIX_DISPLAY_NAME: ${{ vars.MSIX_DISPLAY_NAME }}
     steps:
       - uses: actions/checkout@v4
 
@@ -57,7 +59,8 @@ jobs:
         id: pack
         shell: pwsh
         run: |
-          ./tools/build_msix.ps1 -IdentityName $env:MSIX_IDENTITY_NAME -Publisher $env:MSIX_PUBLISHER -PublisherDisplayName $env:MSIX_PUBLISHER_DISPLAY_NAME
+          $dn = if ($env:MSIX_DISPLAY_NAME) { $env:MSIX_DISPLAY_NAME } else { "PDFácil" }
+          ./tools/build_msix.ps1 -IdentityName $env:MSIX_IDENTITY_NAME -Publisher $env:MSIX_PUBLISHER -PublisherDisplayName $env:MSIX_PUBLISHER_DISPLAY_NAME -DisplayName $dn
 
       - name: Probar la app dentro del contenedor MSIX
         shell: pwsh
