@@ -41,11 +41,11 @@ PyInstaller no compila de Linux a Windows. Usa GitHub Actions: pestaña *Actions
 ### Instalador
 El workflow también genera `PDFacil-Setup-<versión>.exe` (Inno Setup, `installer/PDFacil.iss`): instala por usuario sin admin en `%LOCALAPPDATA%\Programs\PDFacil`, crea acceso en Inicio (y escritorio opcional), se registra en *Aplicaciones instaladas* y actualiza sobre versiones previas conservando la configuración (vive en el registro de usuario, no se borra). Versión = tag `vX.Y.Z` o `pyproject.toml`. Con tag `v*` se publica en Releases junto al ZIP. El instalador no está firmado: SmartScreen puede avisar (*Más información → Ejecutar de todas formas*).
 
-Compilación local en Windows:
+Compilación local en Windows (ZIP + instalador; requiere Inno Setup 6, `winget install JRSoftware.InnoSetup`):
 ```powershell
-pip install -r requirements.lock
-pyinstaller --noconfirm --clean --windowed --onedir --name PDF_Facil pdf_facil.py
+.\build.ps1                    # o build.bat; opciones: -Version 1.0.1 -SkipTests -SkipInstaller
 ```
+Salida: `PDF_Facil-Windows-x64.zip` e `installer_output\PDFacil-Setup-<versión>.exe`.
 
 ## Licencia
 MIT. Dependencias: PySide6 (LGPL), pypdf (BSD).
