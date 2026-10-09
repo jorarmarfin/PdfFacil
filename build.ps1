@@ -1,7 +1,7 @@
 ﻿<#
 Compila PDFacil en Windows: onedir (PyInstaller) + ZIP portable + instalador (Inno Setup).
 Uso:  .\build.ps1 [-Version 1.0.0] [-SkipTests] [-SkipInstaller]
-Salida: PDF_Facil-Windows-x64.zip e installer_output\PDFacil-Setup-<version>.exe (+ .sha256)
+Salida: PDF_Facil-Windows-x64.zip e installer_output\PDFacil-Setup.exe (+ .sha256)
 #>
 param(
     [string]$Version,
@@ -63,10 +63,10 @@ if (-not $SkipInstaller) {
     ) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
     if (-not $iscc) { throw "No se encontró Inno Setup 6. Instala: winget install JRSoftware.InnoSetup" }
     Run $iscc @("/DAppVersion=$Version", "installer\PDFacil.iss")
-    $setup = "installer_output\PDFacil-Setup-$Version.exe"
+    $setup = "installer_output\PDFacil-Setup.exe"
     if (-not (Test-Path $setup)) { throw "Falta $setup" }
     $h = (Get-FileHash $setup -Algorithm SHA256).Hash.ToLower()
-    "$h  PDFacil-Setup-$Version.exe" | Out-File -Encoding ascii "$setup.sha256"
+    "$h  PDFacil-Setup.exe" | Out-File -Encoding ascii "$setup.sha256"
     Write-Host "Instalador: $setup  SHA-256 $h"
 }
 Write-Host "Listo." -ForegroundColor Green

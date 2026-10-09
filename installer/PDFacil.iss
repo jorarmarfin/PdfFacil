@@ -37,7 +37,8 @@ UninstallDisplayIcon={app}\{#AppExe}
 UninstallDisplayName={#AppName}
 LicenseFile=..\LICENSE
 OutputDir=..\installer_output
-OutputBaseFilename=PDFacil-Setup-{#AppVersion}
+; Nombre constante: el enlace público /releases/latest/download/PDFacil-Setup.exe no cambia entre versiones.
+OutputBaseFilename=PDFacil-Setup
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern

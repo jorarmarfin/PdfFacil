@@ -76,17 +76,39 @@ Si coincide: *Más información → Ejecutar de todas formas*. No desactives Def
 ```
 En Windows para desarrollo: `run.bat`.
 
-## Compilar el .exe de Windows
-PyInstaller no compila de Linux a Windows. Usa GitHub Actions: pestaña *Actions → build-windows → Run workflow* (o sube un tag `v1.0.0`). Descarga el artifact `PDF_Facil-Windows-x64` (ZIP + SHA-256). El ícono se regenera con `python tools/make_icon.py`.
+## Compilar y publicar (GitHub Actions)
+PyInstaller no compila de Linux a Windows; lo hace el workflow `build-windows` en un runner Windows.
+
+- **Prueba sin publicar:** *Actions → build-windows → Run workflow*. Deja los artefactos descargables, no crea Release.
+- **Release oficial:** al subir un tag `vX.Y.Z` el workflow ejecuta pruebas, PyInstaller `--onedir`, Inno Setup y verifica el instalador. Solo si todo pasa, publica la Release del tag con `PDFacil-Setup.exe`, `PDF_Facil-Windows-x64.zip` y sus `.sha256`. Si algo falla no se publica nada. El tag debe coincidir con `app/version.py`.
+- **Permisos:** el build corre con `contents: read`; solo el job de publicación tiene `contents: write`.
+
+### Publicar una versión nueva desde Ubuntu
+```bash
+# 1. Edita la versión en app/version.py (ej. "1.2.0"), commit y push
+git add app/version.py && git commit -m "Versión 1.2.0" && git push
+# 2. Crea y sube el tag (debe ser v + la misma versión)
+git tag v1.2.0
+git push origin v1.2.0
+# 3. Sigue el avance en la pestaña Actions; al terminar aparece en Releases
+```
+Si el workflow falla: corrige, y para reutilizar el tag bórralo (`git tag -d v1.2.0 && git push origin :refs/tags/v1.2.0`) y créalo de nuevo.
+
+### Enlace permanente de descarga
+Siempre apunta a la última Release, porque el instalador mantiene el nombre fijo:
+```
+https://github.com/jorarmarfin/PdfFacil/releases/latest/download/PDFacil-Setup.exe
+```
+El ícono se regenera con `python tools/make_icon.py`.
 
 ### Instalador
-El workflow también genera `PDFacil-Setup-<versión>.exe` (Inno Setup, `installer/PDFacil.iss`): instala por usuario sin admin en `%LOCALAPPDATA%\Programs\PDFacil`, crea acceso en Inicio (y escritorio opcional), se registra en *Aplicaciones instaladas* y actualiza sobre versiones previas conservando la configuración (vive en el registro de usuario, no se borra). Versión = tag `vX.Y.Z` o `app/version.py`. Con tag `v*` se publica en Releases junto al ZIP. El instalador no está firmado: SmartScreen puede avisar (*Más información → Ejecutar de todas formas*).
+El workflow también genera `PDFacil-Setup.exe` (Inno Setup, `installer/PDFacil.iss`): instala por usuario sin admin en `%LOCALAPPDATA%\Programs\PDFacil`, crea acceso en Inicio (y escritorio opcional), se registra en *Aplicaciones instaladas* y actualiza sobre versiones previas conservando la configuración (vive en el registro de usuario, no se borra). Versión = tag `vX.Y.Z` o `app/version.py`. El instalador no está firmado: SmartScreen puede avisar (*Más información → Ejecutar de todas formas*).
 
 Compilación local en Windows (ZIP + instalador; requiere Inno Setup 6, `winget install JRSoftware.InnoSetup`):
 ```powershell
 .\build.ps1                    # o build.bat; opciones: -Version 1.0.1 -SkipTests -SkipInstaller
 ```
-Salida: `PDF_Facil-Windows-x64.zip` e `installer_output\PDFacil-Setup-<versión>.exe`.
+Salida: `PDF_Facil-Windows-x64.zip` e `installer_output\PDFacil-Setup.exe`.
 
 ## Licencia
 MIT. Dependencias: PySide6 (LGPL), pypdf (BSD).
