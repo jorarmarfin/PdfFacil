@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# PyInstaller / builds
+build/
+dist/
+*.spec
+PDF_Facil-Windows-x64.zip*
+
+# IDEs / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Temporales de la app y PDF de prueba
+.pdffacil_*.tmp
+*.log
