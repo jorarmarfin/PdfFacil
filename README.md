@@ -36,7 +36,10 @@ Si coincide: *Más información → Ejecutar de todas formas*. No desactives Def
 En Windows para desarrollo: `run.bat`.
 
 ## Compilar el .exe de Windows
-PyInstaller no compila de Linux a Windows. Usa GitHub Actions: pestaña *Actions → build-windows → Run workflow* (o sube un tag `v1.0.0`). Descarga el artifact `PDF_Facil-Windows-x64` (ZIP + SHA-256). Para ícono, coloca `assets/icon.ico`.
+PyInstaller no compila de Linux a Windows. Usa GitHub Actions: pestaña *Actions → build-windows → Run workflow* (o sube un tag `v1.0.0`). Descarga el artifact `PDF_Facil-Windows-x64` (ZIP + SHA-256). El ícono se regenera con `python tools/make_icon.py`.
+
+### Instalador
+El workflow también genera `PDFacil-Setup-<versión>.exe` (Inno Setup, `installer/PDFacil.iss`): instala por usuario sin admin en `%LOCALAPPDATA%\Programs\PDFacil`, crea acceso en Inicio (y escritorio opcional), se registra en *Aplicaciones instaladas* y actualiza sobre versiones previas conservando la configuración (vive en el registro de usuario, no se borra). Versión = tag `vX.Y.Z` o `pyproject.toml`. Con tag `v*` se publica en Releases junto al ZIP. El instalador no está firmado: SmartScreen puede avisar (*Más información → Ejecutar de todas formas*).
 
 Compilación local en Windows:
 ```powershell

@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QUrl
-from PySide6.QtGui import QDesktopServices, QKeySequence, QShortcut
+from PySide6.QtGui import QDesktopServices, QKeySequence, QPixmap, QShortcut
 from PySide6.QtWidgets import (
     QApplication, QFileDialog, QHBoxLayout, QInputDialog, QLabel, QLineEdit,
     QMainWindow, QMessageBox, QProgressDialog, QPushButton, QVBoxLayout, QWidget,
@@ -15,6 +15,7 @@ from app.models.pdf_item import PdfItem
 from app.services.file_service import expand_paths, list_pdfs_in_folder
 from app.services.merge_worker import MergeWorker
 from app.services.settings_service import SettingsService
+from app.resources import resource_path
 from app.ui.compress_dialog import CompressDialog
 from app.ui.pdf_list_model import PdfListModel
 from app.ui.widgets.pdf_table_view import PdfTableView, urls_to_paths
@@ -42,11 +43,17 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(root)
         lay = QVBoxLayout(root)
 
+        logo = resource_path("assets/logo.png")
+        if logo.is_file():
+            header = QLabel()
+            pm = QPixmap(str(logo)).scaledToHeight(56, Qt.SmoothTransformation)
+            header.setPixmap(pm)
+            lay.addWidget(header)
+
         top = QHBoxLayout()
         self.drop_label = QLabel("Suelta aquí tus PDF")
         self.drop_label.setAlignment(Qt.AlignCenter)
-        self.drop_label.setStyleSheet(
-            "border: 2px dashed #888; border-radius: 8px; padding: 14px; font-size: 15px;")
+        self.drop_label.setObjectName("drop")
         self.btn_add = QPushButton("Agregar PDF")
         self.btn_folder = QPushButton("Agregar carpeta")
         top.addWidget(self.drop_label, 1)
@@ -72,10 +79,11 @@ class MainWindow(QMainWindow):
 
         bottom = QHBoxLayout()
         self.count_label = QLabel()
+        self.count_label.setObjectName("count")
         self.btn_merge = QPushButton("UNIR PDF")
         self.btn_merge.setMinimumHeight(44)
         self.btn_merge.setMinimumWidth(180)
-        self.btn_merge.setStyleSheet("font-weight: bold; font-size: 15px;")
+        self.btn_merge.setObjectName("primary")
         self.btn_merge.setDefault(True)
         bottom.addWidget(self.count_label, 1)
         bottom.addWidget(self.btn_merge)

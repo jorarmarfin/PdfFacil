@@ -29,7 +29,7 @@ jobs:
         shell: pwsh
         run: |
           $args = @("--noconfirm","--clean","--windowed","--onedir","--name","PDF_Facil")
-          if (Test-Path assets/icon.ico) { $args += @("--icon","assets/icon.ico") }
+          $args += @("--icon","assets/icon.ico","--add-data","assets;assets")
           pyinstaller @args pdf_facil.py
 
       - name: Verificar ejecutable
@@ -49,12 +49,42 @@ jobs:
           Write-Host "SHA-256: $h"
           "SHA-256 ``$h``" >> $env:GITHUB_STEP_SUMMARY
 
+      - name: Determinar versión
+        id: ver
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_REF -like 'refs/tags/v*') { $v = $env:GITHUB_REF_NAME.TrimStart('v') }
+          else { $v = (Select-String -Path pyproject.toml -Pattern '^version\s*=\s*"([^"]+)"').Matches[0].Groups[1].Value }
+          "version=$v" >> $env:GITHUB_OUTPUT
+          Write-Host "Versión: $v"
+
+      - name: Instalar Inno Setup
+        shell: pwsh
+        run: |
+          if (-not (Get-Command iscc -ErrorAction SilentlyContinue) -and -not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) {
+            choco install innosetup --no-progress -y
+          }
+
+      - name: Construir instalador
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          & $iscc "/DAppVersion=${{ steps.ver.outputs.version }}" installer/PDFacil.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC falló" }
+          $f = "installer_output/PDFacil-Setup-${{ steps.ver.outputs.version }}.exe"
+          if (-not (Test-Path $f)) { throw "Falta $f" }
+          $h = (Get-FileHash $f -Algorithm SHA256).Hash.ToLower()
+          "$h  PDFacil-Setup-${{ steps.ver.outputs.version }}.exe" | Out-File -Encoding ascii "$f.sha256"
+          "Instalador SHA-256 ``$h``" >> $env:GITHUB_STEP_SUMMARY
+
       - uses: actions/upload-artifact@v4
         with:
           name: PDF_Facil-Windows-x64
           path: |
             PDF_Facil-Windows-x64.zip
             PDF_Facil-Windows-x64.zip.sha256
+            installer_output/PDFacil-Setup-*.exe
+            installer_output/PDFacil-Setup-*.exe.sha256
 
       - name: Publicar release (tags)
         if: startsWith(github.ref, 'refs/tags/v')
@@ -63,3 +93,5 @@ jobs:
           files: |
             PDF_Facil-Windows-x64.zip
             PDF_Facil-Windows-x64.zip.sha256
+            installer_output/PDFacil-Setup-*.exe
+            installer_output/PDFacil-Setup-*.exe.sha256
